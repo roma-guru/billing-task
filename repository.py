@@ -8,9 +8,19 @@ import aiopg
 from psycopg2.errors import CheckViolation, SerializationFailure
 from psycopg2.extras import DictCursor
 
-from exceptions import *
-from models import *
-from queries import *
+from exceptions import NotEnoughMoney, NotFound
+from models import Transaction, Wallet
+from queries import (
+    create_transaction,
+    create_wallet,
+    decrease_wallet_balance,
+    get_all_wallets,
+    get_transaction_by_id,
+    get_transactions_by_wallet,
+    get_wallet_by_id,
+    increase_wallet_balance,
+    set_isolation_level,
+)
 
 
 @dataclass
@@ -33,7 +43,10 @@ class WalletRepository:
     async def get_by_id(self, id: int) -> Wallet:
         with (await self.pool.cursor()) as cur:
             await cur.execute(get_wallet_by_id, {"id": id})
-            id, username, balance = await cur.fetchone()
+            row = await cur.fetchone()
+            if row is None:
+                raise NotFound(str(id))
+            id, username, balance = row
             return Wallet(id=id, username=username, balance=balance)
 
 
@@ -45,6 +58,8 @@ class TransactionRepository:
         with (await self.pool.cursor(cursor_factory=DictCursor)) as cur:
             await cur.execute(get_transaction_by_id, {"id": id})
             row = await cur.fetchone()
+            if row is None:
+                raise NotFound(str(id))
             return Transaction(**row)
 
     async def get_by_wallet(self, wallet_id: int) -> List[Transaction]:

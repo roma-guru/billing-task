@@ -1,0 +1,20 @@
+import aiopg
+from starlette.applications import Starlette
+from starlette.routing import Mount
+
+from config import DEBUG, DSN
+from routes import transaction_routes, wallet_routes
+
+pg_pool = None
+
+
+async def init_db():
+    global pg_pool
+    pg_pool = await aiopg.create_pool(DSN)
+
+
+routes = [
+    Mount("/v1/wallets/", routes=wallet_routes),
+    Mount("/v1/transactions", routes=transaction_routes),
+]
+app = Starlette(debug=DEBUG, on_startup=[init_db], routes=routes)

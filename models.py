@@ -1,12 +1,18 @@
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
+
 from pydantic import BaseModel
+
 
 class Wallet(BaseModel):
     id: int
     username: str
     balance: Optional[Decimal] = None
+
+    class Config:
+        json_encoders = {Decimal: str}
+
 
 class Transaction(BaseModel):
     id: int
@@ -16,3 +22,6 @@ class Transaction(BaseModel):
     ts: datetime
     comment: str
     type: str
+
+    class Config:
+        json_encoders = {Decimal: str}
