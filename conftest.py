@@ -19,7 +19,7 @@ def test_dsn():
 async def pg_pool(test_dsn):
     from config import DSN
 
-    pool = await aiopg.create_pool(DSN)
+    pool = await aiopg.create_pool(DSN, maxsize=3)
     yield pool
     pool.close()
 
