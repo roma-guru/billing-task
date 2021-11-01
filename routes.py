@@ -8,29 +8,22 @@ from repository import TransactionRepository, WalletRepository
 
 
 async def create_wallet(request):
-    # TODO lazy init?
-    from app import pg_pool
-
     form = await request.json()
-    repo = WalletRepository(pg_pool)
+    repo = WalletRepository(request.app.state.pg_pool)
     wallet_id = await repo.create(form["username"])
     wallet = await repo.get_by_id(wallet_id)
     return Response(wallet.json(), media_type="application/json")
 
 
 async def get_all_wallets(request):
-    from app import pg_pool
-
-    repo = WalletRepository(pg_pool)
+    repo = WalletRepository(request.app.state.pg_pool)
     wallets = await repo.get_all()
     resp = ",".join([obj.json() for obj in wallets])
     return Response(f"[{resp}]", media_type="application/json")
 
 
 async def get_wallet(request):
-    from app import pg_pool
-
-    repo = WalletRepository(pg_pool)
+    repo = WalletRepository(request.app.state.pg_pool)
     wallet_id = request.path_params["id"]
     try:
         wallet = await repo.get_by_id(wallet_id)
@@ -47,9 +40,7 @@ wallet_routes = [
 
 
 async def get_transaction(request):
-    from app import pg_pool
-
-    repo = TransactionRepository(pg_pool)
+    repo = TransactionRepository(request.app.state.pg_pool)
     trans_id = request.path_params["id"]
     try:
         trans = await repo.get_by_id(trans_id)
@@ -59,9 +50,7 @@ async def get_transaction(request):
 
 
 async def get_transactions_by_wallet(request):
-    from app import pg_pool
-
-    repo = TransactionRepository(pg_pool)
+    repo = TransactionRepository(request.app.state.pg_pool)
     wallet_id = request.path_params["wallet_id"]
     transactions = await repo.get_by_wallet(wallet_id)
     resp = ",".join([obj.json() for obj in transactions])
@@ -69,9 +58,7 @@ async def get_transactions_by_wallet(request):
 
 
 async def make_deposit(request):
-    from app import pg_pool
-
-    repo = TransactionRepository(pg_pool)
+    repo = TransactionRepository(request.app.state.pg_pool)
     form = await request.json()
     try:
         trans_id = await repo.make_deposit(form["to_id"], Decimal(form["amount"]))
@@ -83,9 +70,7 @@ async def make_deposit(request):
 
 
 async def make_transfer(request):
-    from app import pg_pool
-
-    repo = TransactionRepository(pg_pool)
+    repo = TransactionRepository(request.app.state.pg_pool)
     form = await request.json()
     try:
         trans_id = await repo.make_transfer(
